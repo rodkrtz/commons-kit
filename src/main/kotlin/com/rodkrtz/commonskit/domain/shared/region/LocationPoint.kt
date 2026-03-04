@@ -1,8 +1,10 @@
 package com.rodkrtz.commonskit.domain.shared.region
 
 import com.rodkrtz.commonskit.core.round
+import kotlinx.serialization.Serializable
 import java.math.RoundingMode
 
+@Serializable
 public data class LocationPoint(
     val address: String,
     var latitude: Double,
