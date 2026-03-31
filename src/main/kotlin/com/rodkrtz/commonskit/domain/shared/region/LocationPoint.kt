@@ -7,6 +7,7 @@ import java.math.RoundingMode
 @Serializable
 public data class LocationPoint(
     val address: String,
+    val label: String? = null,
     var latitude: Double,
     var longitude: Double
 ) {
