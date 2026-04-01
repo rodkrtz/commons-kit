@@ -23,7 +23,7 @@ dependencies {
     testImplementation(kotlin("test"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.10.0")
-    implementation("org.jsoup:jsoup:1.22.1")
+    api("org.jsoup:jsoup:1.22.1")
 }
 
 kotlin {

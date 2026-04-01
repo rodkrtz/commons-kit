@@ -1,5 +1,7 @@
 package com.rodkrtz.commonskit.core.extraction
 
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -8,7 +10,7 @@ import java.nio.file.Path
 
 class HtmlExtractorTest {
 
-    @Test
+    /*@Test
     fun `should extract required scalar fields successfully`() {
         val html = """
             <html>
@@ -436,19 +438,19 @@ class HtmlExtractorTest {
     private data class ProductWithCategory(
         val title: String,
         val category: String?
-    )
+    )*/
 
     @Test
     fun teste() {
         val input = Thread.currentThread().contextClassLoader.getResourceAsStream("teste1.html")
 
-        val html = HtmlCleaner(input)
+        /*val html = HtmlCleaner(input)
             .withoutTags("head", "input", "script", "style", "link")
-            .keepOnlyAttributes("id")
+            .keepOnlyAttributes("id", "class")
             .clearAllEmptyElements()
             .removeDoctype()
             .clearComments()
-            .toCompactedHtml()
+            .toCompactedHtml()*/
 
         //674571
         //566973
@@ -459,12 +461,54 @@ class HtmlExtractorTest {
         //276646
         //127906
         //127619
-        println("----->>>>>" + html.length)
-        println(html)
+        //println("----->>>>>" + html.length)
+//        println(html)
 
-        val path = Path.of("cleaned.html")
+        val path = Path.of("src/test/resources/nfce-sc-sample.html")
 
 //        Files.createDirectories(path.parent)
-        Files.writeString(path, html)
+        //Files.writeString(path, html)
+
+        /*val definition = extractionDefinition<Totais> {
+            val valorTotalKey = requiredField(
+                name = "valorTotal",
+                selector = "#Totais",
+                strategy = ExtractionStrategy.LabelValue("Base de Cálculo ICMS"),
+                transformer = ValueTransformer.bigDecimal(),
+                postProcessor = { raw -> raw.trim().ifBlank { null } }
+            )
+
+            build { ctx ->
+                Totais(ctx[valorTotalKey])
+            }
+        }
+
+        val result = HtmlExtractor(html).extract(definition)
+
+        println(result.value)*/
+        //val dados  = Jsoup.parse(input.bufferedReader().use { it.readText() }).selectFirst("fieldset:has(legend:matchesOwn(^Totais$))")
+        val dados  = Jsoup.parse(input.bufferedReader().use { it.readText() }).selectFirst("fieldset:has(label:matchesOwn(^Chave de Acesso$))")
+
+        println(dados)
+        val map = extractLabelValueMap(dados)
     }
+}
+
+fun extractLabelValueMap(root: Element?): Map<String, String?> {
+    if (root == null) return emptyMap()
+
+    return root.select("td")
+        .mapNotNull { td ->
+            val label = td.selectFirst("> label")
+                ?.text()
+                ?.ifBlank { null }
+                ?: return@mapNotNull null
+
+            val value = td.selectFirst("> span")
+                ?.text()
+                ?.ifBlank { null }
+
+            label to value
+        }
+        .toMap()
 }

@@ -10,6 +10,32 @@ public sealed interface ExtractionStrategy {
         override fun extract(element: Element): String = element.text()
     }
 
+    public data class QueryText(
+        val query: String
+    ) : ExtractionStrategy {
+        override fun extract(element: Element): String? =
+            element.selectFirst(query)?.text()
+    }
+
+    public data class RelativeText(
+        val anchorSelector: String,
+        val anchorText: String,
+        val targetSelector: String
+    ) : ExtractionStrategy {
+        override fun extract(element: Element): String? {
+            val expected = anchorText.normalize()
+
+            val anchor = element.select(anchorSelector)
+                .firstOrNull { it.text().normalize() == expected }
+                ?: return null
+
+            return anchor.parent()
+                ?.selectFirst("> $targetSelector")
+                ?.text()
+        }
+    }
+}
+
     public data object OwnText : ExtractionStrategy {
         override fun extract(element: Element): String = element.ownText()
     }
@@ -71,12 +97,31 @@ public sealed interface ExtractionStrategy {
             regex.find(element.text())?.groupValues?.getOrNull(groupIndex)
     }
 
+    public data class LabelValue(
+        val labelText: String
+    ) : ExtractionStrategy {
+        override fun extract(element: Element): String? {
+            val expected = labelText.normalize()
+
+            return element
+                .select("label")
+                .firstOrNull { it.text().normalize() == expected }
+                ?.parent()
+                ?.selectFirst("span")
+                ?.text()
+        }
+
+        private fun String.normalize(): String =
+            replace('\u00A0', ' ')
+                .replace(Regex("\\s+"), " ")
+                .trim()
+    }
+
     public data class Custom(
         val extractor: (Element) -> String?
     ) : ExtractionStrategy {
         override fun extract(element: Element): String? = extractor(element)
     }
-}
 
 public sealed interface ListExtractionStrategy {
 
@@ -113,3 +158,8 @@ public sealed interface ListExtractionStrategy {
             elements.map(extractor)
     }
 }
+
+private fun String.normalize(): String =
+    replace('\u00A0', ' ')
+        .replace(Regex("\\s+"), " ")
+        .trim()

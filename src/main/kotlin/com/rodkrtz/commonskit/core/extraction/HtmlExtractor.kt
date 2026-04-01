@@ -312,4 +312,8 @@ public class HtmlExtractor private constructor(
     public fun sliceAll(selector: String): List<HtmlExtractor> =
         extractAllOuterHtml(selector).map { HtmlExtractor(it, normalizer) }
 
+    public fun findFirst(selector: String): Element? {
+        return document.selectFirst("#$selector") ?: document.selectFirst("fieldset:has(legend:matchesOwn(^${selector}$))")
+    }
+
 }
